@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test WebSocket</title>
+    <style>
+        * {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>LISTS</h2>
+    <form action="" id="form-list">
+        <fieldset>
+            <legend>Contacts</legend>
+            <button onclick="listContacts()">lister contacts</button>
+        </fieldset>
+        <fieldset>
+            <legend>Discussion</legend>
+            <button onclick="discussion()">Discussion</button>
+        </fieldset>
+        <fieldset>
+            <legend>Messages</legend>
+            <label for="emit">
+                emetteur:<input type="text" name="emit" id="emit-list">
+            </label>
+            <br>
+            <label for="recv">
+                recepteur:<input type="text" name="recv" id="recv-list">
+            </label>
+            <br>
+            <label for="date">
+                date:<input type="text" name="date" id="date-list">
+            </label>
+            <br>
+            <label for="type">
+                type:<input type="text" name="type" id="type-list">
+            </label>
+            <br>
+            <button onclick="listMessages();">lister messages</button>
+        </fieldset>
+    </form>
+    <h2>INSERTIONS</h2>
+    <form action="" id="form-insert">
+        <fieldset>
+            <legend>Messages</legend>
+            <label for="emit">
+                emetteur:<input type="text" name="emit" id="emit-insert">
+            </label>
+            <br>
+            <label for="recv">
+                recepteur:<input type="text" name="recv" id="recv-insert">
+            </label>
+            <br>
+            <label for="date">
+                date:<input type="text" name="date" id="date-insert">
+            </label>
+            <br>
+            <label for="type">
+                type:<input type="text" name="type" id="type-insert">
+            </label>
+            <br>
+            <label for="content">
+                content:<textarea type="text" name="content" id="content-insert"></textarea>
+            </label>
+            <br>
+            <button onclick="insertMessage();">enregistrer</button>
+        </fieldset>
+    </form>
+    <script>
+        const PORT = 9091;
+        const MESSAGE_TYPE = {
+            EXIT: "EXIT",
+            LIST_CONTACTS: "LIST_CONTACTS",
+            FIRST_CONTACT: "FIRST_CONTACT",
+            LIST_MESSAGES: "LIST_MESSAGES",
+            DISCUSSION: "DISCUSSION",
+            INSERT_CONTACT: "INSERT_CONTACT",
+            INSERT_MESSAGE: "INSERT_MESSAGE",
+        };
+        document.getElementById("form-list").addEventListener("submit", (event) => {
+            event.preventDefault();
+        });
+        document.getElementById("form-insert").addEventListener("submit", (event) => {
+            event.preventDefault();
+        });
+        var ws = new WebSocket('ws://localhost:' + PORT);
+        ws.addEventListener("message", (event) => {
+            console.log("message from server:");
+            try {
+                console.log(JSON.parse(event.data));
+            } catch (e) {
+                console.log(event.data);
+            }
+        });
+
+        function send(msg) {
+            console.log(`sending "${msg}"...`);
+            ws.send(msg);
+        }
+
+        function listContacts() {
+            send(JSON.stringify({
+                type: MESSAGE_TYPE.LIST_CONTACTS,
+            }));
+        }
+
+        function discussion() {
+            send(JSON.stringify({
+                type: MESSAGE_TYPE.DISCUSSION,
+                params: {
+                    emit: "+237691671707",
+                    recv: "+237697310443",
+                }
+            }));
+        }
+
+        function listMessages() {
+            send(JSON.stringify({
+                type: MESSAGE_TYPE.LIST_MESSAGES,
+                params: {
+                    emit: document.getElementById("emit-list").value,
+                    recv: document.getElementById("recv-list").value,
+                    date: document.getElementById("date-list").value,
+                    type: document.getElementById("type-list").value,
+                }
+            }));
+        }
+
+        function insertMessage() {
+            send(JSON.stringify({
+                type: MESSAGE_TYPE.INSERT_MESSAGE,
+                params: {
+                    emit: document.getElementById("emit-insert").value,
+                    recv: document.getElementById("recv-insert").value,
+                    date: new Date().toISOString().replace(/T/, " ").replace(/\..+/, ""),
+                    type: document.getElementById("type-insert").value,
+                    content: document.getElementById("content-insert").value,
+                }
+            }));
+        }
+    </script>
+</body>
+
+</html>
